@@ -55,7 +55,7 @@ def customer_show():
 @app.route('/show-products')
 def product_show():
     cn = conn.cursor()
-    conn = sqlite3.connect('sql.db')
+    conn = sqlite3.connect('sql.db') 
     cn.execute("select * from product")
     data = []
     for i in cn.fetchall():
@@ -232,9 +232,6 @@ def updatesupplier():
     else:
          return render_template('updatesupplier.html')
     
-
-
-
 
 
 @app.route('/delete-customer', methods=['GET', 'POST'])
