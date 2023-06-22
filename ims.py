@@ -1,39 +1,42 @@
 #Establish a connection to the SQL server
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
-import pyodbc
+import sqlite3
 
-server = 'SASIDHAR\SQLEXPRESS'
-database = 'NEW_IMS'
-driver = '{SQL Server}'
+conn = sqlite3.connect('sql.db')
+app = Flask(__name__)
 
-connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};trusted_connection=yes'
+def idgenerator(tab):
+    conn = sqlite3.connect('sql.db')
+    cn = conn.cursor()
+    idval = ''
+    if tab=='CUSTOMER':
+        idval = 'CUSTOMER_ID'
+    if tab=='PRODUCT':
+        idval = 'PRODUCT_ID'
+    if tab=='ORDERS':
+        idval = 'ORDER_ID'
+    if tab=='SUPPLIER':
+        idval = 'SUPPLIER_ID'
+    print(tab,idval)
+    cn.execute(f"SELECT {idval} FROM {tab}")
+    new = cn.fetchall()
+    cud = str(new[len(new)-1][0])
+    for i in range(len(str(cud))):
+        if cud[i].isnumeric():
+            f = i
+            break
+    myint = cud[f:]
+    myint = int(myint)+1
+    return idval[0:3]+str(myint)
 
-conn = pyodbc.connect(connection_string)
-
-#cn = conn.cursor()
-
-# cn.execute("SELECT * FROM CUSTOMER")
-#print(cn.fetchall())
-#using the variables the data has been inserted by using print(f"{}{}")
-# customer_name = 'chotu'
-# customer_address = 'sangareddy'
-# customer_email = 'chotu@gmail.com'
-#inserting the data into the customer table....
-#cn.execute("insert into customer(customer_name.customer_address,customer_email) values ('srikanth','nagaram','srikanth@gmail.com')")
-'''
-cn.execute(f"insert into customer(customer_name,customer_address,customer_email) values ('{customer_name}','{customer_address}','{customer_email}')")
-
-#to see the changes in the sql server we have to use commit
-conn.commit()
-'''
-#-----'/' for the home page we use forward slash
-@app.route('/')   #routing the homepage
+@app.route('/')   
 def home():
     return render_template('index.html')
 
 @app.route('/show-customers')
 def customer_show():
+    conn = sqlite3.connect('sql.db')
     cn = conn.cursor()
     cn.execute("select * from customer")
     data = []
@@ -48,9 +51,11 @@ def customer_show():
     return render_template('showcustomers.html',data = data)
 
 
+
 @app.route('/show-products')
 def product_show():
     cn = conn.cursor()
+    conn = sqlite3.connect('sql.db')
     cn.execute("select * from product")
     data = []
     for i in cn.fetchall():
@@ -67,6 +72,7 @@ def product_show():
 @app.route('/show-orders')
 def orders_show():
     cn = conn.cursor()
+    conn = sqlite3.connect('sql.db')
     cn.execute("select * from orders")
     data = []
     for i in cn.fetchall():
@@ -82,6 +88,7 @@ def orders_show():
 @app.route('/show-supplier')
 def supplier_show():
     cn = conn.cursor()
+    conn = sqlite3.connect('sql.db')
     cn.execute("select * from supplier")
     data = []
     for i in cn.fetchall():
@@ -98,6 +105,7 @@ def supplier_show():
 def addcustomer():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          customername=request.form.get('name')
          customeraddress=request.form.get('address')
          customeremail=request.form.get('email')
@@ -113,6 +121,7 @@ def addcustomer():
 def addproduct():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          productname = request.form.get('name')
          stock=request.form.get('stock')
          price=request.form.get('price')
@@ -129,6 +138,7 @@ def addproduct():
 def addorders():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          productid=request.form.get('productid')
          customerid=request.form.get('customerid')
          quantity=request.form.get('quantity')
@@ -145,6 +155,7 @@ def addorders():
 def addsuplier():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db') 
          suppliername=request.form.get('suppliername')
          supplieraddress=request.form.get('supplieraddress')
          supplieremail=request.form.get('supplieremail')
@@ -161,6 +172,7 @@ def addsuplier():
 def updatecustomer():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          customerid=request.form.get("customerid")
          change=request.form.get("change")
          newvalue=request.form.get("newvalue")
@@ -176,6 +188,7 @@ def updatecustomer():
 def updateproduct():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          productid=request.form.get("productid")
          change=request.form.get("change")
          newvalue=request.form.get("newvalue")
@@ -191,6 +204,7 @@ def updateproduct():
 def updateorders():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          orderid=request.form.get("orderid")
          change=request.form.get("change")
          newvalue=request.form.get("newvalue")
@@ -207,6 +221,7 @@ def updateorders():
 def updatesupplier():
     if request.method == 'POST':
          cn = conn.cursor()
+         conn = sqlite3.connect('sql.db')
          supplierid=request.form.get("supplierid")
          change=request.form.get("change")
          newvalue=request.form.get("newvalue")
@@ -226,6 +241,7 @@ def updatesupplier():
 def deletecustomer():
     if request.method == 'POST':
         customerid = request.form.get("customerid")
+        conn = sqlite3.connect('sql.db')
         cn = conn.cursor()
         
         try:
@@ -241,9 +257,74 @@ def deletecustomer():
 
     else:
         return render_template('deletecustomer.html')
+    
 
+@app.route('/delete-product', methods=['GET', 'POST'])
+def product_delete():
+    if request.method == 'POST':
+        product_id = request.form.get("product_id")
+        conn = sqlite3.connect('sql.db')
+        cn = conn.cursor()
+
+        try:
+            cn.execute("DELETE FROM ORDERS WHERE product_id = ?", product_id)
+            cn.execute("DELETE FROM product WHERE product_id = ?", product_id)  # Updated column name
+            conn.commit()
+            return jsonify({'message': 'successful'})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'message': 'error', 'error_message': str(e)})
+        finally:
+            cn.close()
+    else:
+        return render_template('deleteproduct.html')
+        
+@app.route('/delete-orders', methods=['GET', 'POST'])
+def orders_delete():
+    if request.method == 'POST':
+        order_id = request.form.get("order_id")
+        conn = sqlite3.connect('sql.db')
+        cn = conn.cursor()
+
+        try:
+            cn.execute("DELETE FROM ORDERS WHERE order_ID = ?", order_id)
+            conn.commit()
+            return jsonify({'message': 'successful'})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'message': 'error', 'error_message': str(e)})
+        finally:
+            cn.close()
+    else:
+        return render_template('deleteorders.html')
+    
+@app.route('/delete-supplier', methods=['GET', 'POST'])
+def supplier_delete():
+    if request.method == 'POST':
+        supplier_id = request.form.get("supplier_id")
+        conn = sqlite3.connect('ims.db')
+        cn = conn.cursor()
+
+        try:
+            # Delete related records in PRODUCT table first
+            cn.execute("DELETE FROM PRODUCT WHERE supplier_id = ?", supplier_id)
+            conn.commit()
+
+            # Delete the supplier
+            cn.execute("DELETE FROM supplier WHERE supplier_id = ?", supplier_id)
+            conn.commit()
+
+            return jsonify({'message': 'successful'})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'message': 'error', 'error_message': str(e)})
+        finally:
+            cn.close()
+
+    else:
+        return render_template('deletesupplier.html')
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host = '0.0.0.0', port = 5000, debug = False)
 
