@@ -7,6 +7,7 @@ cur=conn.cursor()
 #cur.execute('CREATE TABLE ORDERS(ORDER_ID VARCHAR(30),PRODUCT_ID VARCHAR(30),CUSTOMER_ID VARCHAR(30),QUANTITY INT)')
 #cur.execute("insert into CUSTOMER values('cus1','sasi','plr','sasi@gmail.com')")
 #cur.execute("insert into supplier values('SUP1','harsha','atp','harsha@gmail.com')")
+cur.execute("insert into CUSTOMER values('cus2','malli','amplr','malli@gmail.com')")
 conn.commit()
 
 
